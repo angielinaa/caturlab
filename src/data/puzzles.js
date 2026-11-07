@@ -1,0 +1,52 @@
+// Puzzle buatan sendiri (bebas hak cipta). Tipe 'mate1' = cari langkah skakmat;
+// tipe 'best' = cari langkah yang ada di `solutions` (format UCI).
+export const PUZZLES = [
+  {
+    id: 'p1',
+    theme: 'mate',
+    title: 'Skakmat di baris belakang',
+    type: 'mate1',
+    fen: '6k1/5ppp/8/8/8/8/8/R3K3 w - - 0 1',
+    hint: 'Raja hitam terkurung oleh bidaknya sendiri. Cari langkah yang men-skak di baris 8.',
+    explanation: 'Ra8# adalah back-rank mate: pion f7, g7, h7 menutup jalan keluar raja.',
+  },
+  {
+    id: 'p2',
+    theme: 'fork',
+    title: 'Fork kuda',
+    type: 'best',
+    fen: '2q3k1/8/8/3N4/8/8/8/6K1 w - - 0 1',
+    solutions: ['d5e7'],
+    hint: 'Satu langkah kuda bisa menyerang raja dan ratu sekaligus.',
+    explanation: 'Ne7+ men-skak raja di g8 sekaligus menyerang ratu di c8. Setelah raja pindah, kuda memakan ratu.',
+  },
+  {
+    id: 'p3',
+    theme: 'bidak-menggantung',
+    title: 'Ratu yang menggantung',
+    type: 'best',
+    fen: '4k3/8/8/3q4/8/8/8/3RK3 w - - 0 1',
+    solutions: ['d1d5'],
+    hint: 'Periksa bidak lawan yang tidak dilindungi.',
+    explanation: 'Ratu di d5 tidak dilindungi siapa pun, jadi Rxd5 memenangkan ratu gratis.',
+  },
+  {
+    id: 'p4',
+    theme: 'mate',
+    title: 'Ratu dan raja bekerja sama',
+    type: 'mate1',
+    fen: '7k/5Q2/6K1/8/8/8/8/8 w - - 0 1',
+    hint: 'Ratu harus dilindungi raja saat memberi skak.',
+    explanation: 'Ada beberapa skakmat (misalnya Qg7#). Polanya: ratu dekat raja lawan dan dilindungi rajamu.',
+  },
+  {
+    id: 'p5',
+    theme: 'skewer',
+    title: 'Skewer benteng',
+    type: 'best',
+    fen: '3k3r/8/8/8/8/8/8/1R2K3 w - - 0 1',
+    solutions: ['b1b8'],
+    hint: 'Skak raja sehingga bidak di belakangnya terbuka.',
+    explanation: 'Rb8+ memaksa raja pindah, lalu Rxh8 memakan benteng di belakangnya. Itulah skewer.',
+  },
+];
