@@ -1,4 +1,4 @@
-import { parseBestMove, parseInfoLine } from '../lib/uci';
+import { summarizeSearch } from '../lib/uci';
  
 const ENGINE_URL = '/stockfish/stockfish-19-lite-single.js';
  
@@ -7,13 +7,11 @@ export class StockfishEngine {
   constructor(url = ENGINE_URL) {
     this.worker = new Worker(url);
     this.listeners = new Set();
-    this.queue = Promise.resolve(); // antrean: analisis dijalankan satu per satu
- 
+    this.queue = Promise.resolve(); // antrean: pencarian dijalankan satu per satu
     this.worker.onmessage = (event) => {
       const line = typeof event.data === 'string' ? event.data : '';
       for (const listener of this.listeners) listener(line);
     };
- 
     this.ready = this.init();
   }
  
@@ -41,33 +39,38 @@ export class StockfishEngine {
     await this.waitFor((l) => l === 'readyok');
   }
  
-  // Mengembalikan { cp, mate, bestUci, depth } dari sudut pandang pihak yang jalan.
-  evaluate(fen, depth = 12) {
-    const job = this.queue.then(() => this.run(fen, depth));
-    this.queue = job.catch(() => {}); // satu error tidak boleh menghentikan antrean
-    return job;
+  // Untuk review. Mengembalikan { cp, mate, bestUci, pv, depth, second } dari sudut pandang
+  // pihak yang jalan. Selalu pada kekuatan penuh (Skill Level 20).
+  evaluate(fen, depth = 12, multipv = 1) {
+    return this.enqueue(() => this.run(fen, { depth, multipv, skill: 20 }));
   }
  
-  async run(fen, depth) {
-    await this.ready;
-    let last = null;
-    const track = (line) => {
-      const info = parseInfoLine(line);
-      if (info && !info.bound) last = info;
-    };
-    this.listeners.add(track);
+  // Untuk main lawan engine. Mengembalikan langkah UCI (mis. 'e2e4'), atau null jika tidak ada.
+  // skill < 20 membuat engine sengaja kurang sempurna; depth kecil membuatnya lebih cepat.
+  async bestMove(fen, { skill = 20, depth = 12 } = {}) {
+    const result = await this.enqueue(() => this.run(fen, { depth, multipv: 1, skill }));
+    return result.bestUci;
+  }
  
+  enqueue(job) {
+    const promise = this.queue.then(job);
+    this.queue = promise.catch(() => {}); // satu error tidak boleh menghentikan antrean
+    return promise;
+  }
+ 
+  async run(fen, { depth, multipv, skill }) {
+    await this.ready;
+    const lines = [];
+    const collect = (line) => lines.push(line);
+    this.listeners.add(collect);
+    // Opsi disetel ulang tiap pencarian, jadi review dan permainan tidak saling mengganggu.
+    this.send(`setoption name Skill Level value ${skill}`);
+    this.send(`setoption name MultiPV value ${multipv}`);
     this.send(`position fen ${fen}`);
     this.send(`go depth ${depth}`);
-    const bestLine = await this.waitFor((l) => l.startsWith('bestmove'));
-    this.listeners.delete(track);
- 
-    return {
-      cp: last?.cp ?? null,
-      mate: last?.mate ?? null,
-      depth: last?.depth ?? 0,
-      bestUci: parseBestMove(bestLine),
-    };
+    await this.waitFor((l) => l.startsWith('bestmove'));
+    this.listeners.delete(collect);
+    return summarizeSearch(lines);
   }
  
   terminate() {

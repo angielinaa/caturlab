@@ -27,3 +27,23 @@ export function clearProfile() {
     /* abaikan */
   }
 }
+ 
+const GAME_KEY = 'caturlab:lastGame';
+ 
+// Game terakhir yang kamu mainkan: { pgn, color, levelLabel, result }.
+export function saveLastGame(game) {
+  try {
+    localStorage.setItem(GAME_KEY, JSON.stringify(game));
+  } catch {
+    /* abaikan */
+  }
+}
+ 
+export function loadLastGame() {
+  try {
+    const raw = localStorage.getItem(GAME_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
