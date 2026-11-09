@@ -1,6 +1,6 @@
 import { CLASS_ORDER, MATE_CP, classifyLoss, cpToWinPercent, moveAccuracy, refineClass } from './analysis.js';
 import { uciToSan } from './game.js';
-import { describeBetter, describeProblem, fenAfterMove } from './tactics.js';
+import { describeBetter, describeProblem, fenAfterMove, moveParts } from './tactics.js'; // <- hanya baris ini yang berubah
 import { detectPhase } from './weakness.js';
  
 // Label yang dianggap "masalah" (dipakai tombol lompat dan daftar momen kunci).
@@ -32,8 +32,12 @@ export function buildReview(moves, evals) {
     const bestUci = evals[i].bestUci;
     const replyUci = evals[i + 1].bestUci; // balasan terbaik lawan setelah langkah ini
     const needsExplain = loss >= 5;
+    const parts = moveParts(m.fenBefore, m.uci) ?? {};
     return {
       ...m,
+      piece: parts.piece, // bidak yang melangkah, asal, dan tujuan: dipakai untuk penjelasan
+      from: parts.from,
+      to: parts.to,
       cls,
       loss,
       prevLoss,

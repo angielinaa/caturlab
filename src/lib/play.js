@@ -25,7 +25,18 @@ export function applyMove(fen, from, to, promotion) {
     return { legal: false };
   }
 }
- 
+
+// Petak tujuan legal untuk bidak di `square` (dipakai untuk menyorot ke mana bidak bisa melangkah).
+// capture = true jika di petak itu ada bidak lawan yang bisa dimakan (termasuk en passant).
+export function legalTargets(fen, square) {
+  const chess = new Chess(fen);
+  const byTarget = new Map();
+  for (const m of chess.moves({ square, verbose: true })) {
+    byTarget.set(m.to, { to: m.to, capture: Boolean(m.captured) }); // promosi menghasilkan 4 langkah ke petak yang sama
+  }
+  return [...byTarget.values()];
+}
+
 // Langkah dari engine (format UCI, mis. 'e2e4' atau 'e7e8q').
 export function applyUci(fen, uci) {
   return applyMove(fen, uci.slice(0, 2), uci.slice(2, 4), uci[4]);

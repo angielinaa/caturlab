@@ -14,7 +14,14 @@ function tryMove(fen, uci) {
     return null;
   }
 }
- 
+
+// Bidak apa yang melangkah dari mana ke mana (dan apa yang dimakan). null jika langkah ilegal.
+export function moveParts(fen, uci) {
+  const r = tryMove(fen, uci);
+  if (!r) return null;
+  return { piece: r.move.piece, from: r.move.from, to: r.move.to, captured: r.move.captured ?? null };
+}
+
 // Posisi (FEN) setelah sebuah langkah UCI dimainkan. null jika langkah tidak legal.
 export function fenAfterMove(fen, uci) {
   return tryMove(fen, uci)?.chess.fen() ?? null;
@@ -50,7 +57,7 @@ export function describeProblem({ fenAfter, uci, replyUci, gotMated }) {
   const r = tryMove(fenAfter, replyUci);
   if (!r) return null;
   const { chess, move } = r;
-  const base = { replySan: move.san };
+  const base = { replySan: move.san, reply: { piece: move.piece, from: move.from, to: move.to } };
   if (chess.isCheckmate()) return { kind: 'mate', ...base };
   if (gotMated) return { kind: 'mateThreat', ...base };
   if (move.captured) {

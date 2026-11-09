@@ -1,5 +1,5 @@
 import { Chessboard } from 'react-chessboard';
- 
+
 // Pembungkus papan. Mudah diganti library lain nanti karena hanya file ini yang tahu react-chessboard.
 export default function Board({
   id = 'board',
@@ -9,6 +9,8 @@ export default function Board({
   squareStyles = {},
   interactive = false,
   onDrop = () => false,
+  onSquareClick = () => {},
+  onPieceDrag = () => {},
 }) {
   return (
     <div className="board-wrap">
@@ -22,8 +24,11 @@ export default function Board({
           allowDragging: interactive,
           onPieceDrop: ({ sourceSquare, targetSquare }) =>
             targetSquare ? onDrop(sourceSquare, targetSquare) : false,
-          darkSquareStyle: { backgroundColor: '#b7584f' },
-          lightSquareStyle: { backgroundColor: '#f6e6e4' },
+          // Klik petak: dipakai untuk memilih bidak lalu memilih tujuannya. pieceType contoh: 'wP', 'bN'.
+          onSquareClick: ({ square, piece }) => onSquareClick(square, piece?.pieceType ?? null),
+          onPieceDrag: ({ square, piece }) => onPieceDrag(square, piece?.pieceType ?? null),
+          darkSquareStyle: { backgroundColor: '#15202a' },
+          lightSquareStyle: { backgroundColor: '#eaf4fc' },
           animationDurationInMs: 200,
         }}
       />
